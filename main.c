@@ -4,6 +4,8 @@
 #include <string.h>
 #include <ctype.h>
 
+int parser(char *nombre);
+
 int main(int argc, char* argv[])
 {
     char    *entries;
@@ -107,5 +109,24 @@ int main(int argc, char* argv[])
         return 1;
     }
     printf("%s - %d - %d\n", entries, size, debug);
+    parser(entries);
     return 0;
+}
+
+int parser(char *nombre)
+{
+    FILE *io = fopen(nombre, "r");
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t nread;
+
+    while ((nread = getline(&line, &len, io)) != -1)
+    {
+       printf("Retrieved line of length %zu:\n", nread);
+       printf("%s\n", line);
+   }
+
+   free(line);
+   fclose(io);
+   return 1;
 }
