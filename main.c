@@ -108,7 +108,6 @@ int main(int argc, char* argv[])
         fprintf(stderr, "No se ingreso el parametro D.\n");
         return 1;
     }
-    printf("%s - %d - %d\n", entries, size, debug);
     parser(entries);
     return 0;
 }
@@ -120,13 +119,16 @@ int parser(char *nombre)
     size_t len = 0;
     ssize_t nread;
 
+    int energy, team, color;
+    char* name = malloc(200);
+
     while ((nread = getline(&line, &len, io)) != -1)
     {
-       printf("Retrieved line of length %zu:\n", nread);
-       printf("%s\n", line);
-   }
+       sscanf(line, "%d %d %d %s", &energy, &team, &color, name);
+       printf("%d - %d - %d - %s\n", energy, team, color, name);
+    }
 
-   free(line);
-   fclose(io);
-   return 1;
+    free(line);
+    fclose(io);
+    return 1;
 }
