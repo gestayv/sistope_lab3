@@ -17,7 +17,7 @@ void posicionar(int x, int y, int* x2, int* y2, WINDOW* ventana){
 	int Xmax;
 	int Ymax;
 	//printf("%d %d \n", Xmax,Ymax);
-	getmaxyx(ventana,Xmax,Ymax);
+	getmaxyx(ventana,Ymax,Xmax);
 	int random = rand() % 5;
 	switch(random){
 		case 0:
