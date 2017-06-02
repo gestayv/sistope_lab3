@@ -192,7 +192,18 @@ void* hiloLuchador(void *newFighter)
     entry *fighter = (struct entry *)newFighter;
     printf("NOMBRE: %s COLOR: %d UNIVERSO: %d HP: %d\n", fighter->name, fighter->color, fighter->universo, fighter->energy);
 
-    // Aquí ocurre la magia. literalmente...
+    //  Aquí ocurre la magia.
+    //  Primero ubico en el "tablero", posición random.
+    //  Luego ocurre este ciclo.
+    //  Si HP > 0
+    //  1- Mover a una posición random. (thread safe)
+    //      1.1- Aumentar ki (+1).
+    //  2- Verificar si puede atacar. (thread safe)
+    //      2.1- Si es posible:
+    //          2.1.1- Obtengo los luchadores de las posiciones contiguas.
+    //          2.1.2- Realiza el ataque (ki*5) y seteo ki en 0.
+    //  3- Verificar si ha sido atacado. (thread safe)
+    //      3.1- Restar el ataque del HP si fue atacado.
 
     free(fighter->name);
     free(fighter);
