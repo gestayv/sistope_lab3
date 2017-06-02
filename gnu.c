@@ -23,7 +23,7 @@ void posicionar(int x, int y, int* x2, int* y2, WINDOW* ventana){
 		case 0:
 			if(x+1 < Xmax){
 				*x2 = x + 1;
-			}	
+			}
 			*y2 = y;
 			break;
 		case 1:
@@ -33,7 +33,7 @@ void posicionar(int x, int y, int* x2, int* y2, WINDOW* ventana){
 			*y2 = y;
 			break;
 		case 2:
-			*x2 = x;	
+			*x2 = x;
 			if(y+1 < Ymax){
 				*y2 = y + 1;
 			}
@@ -64,11 +64,8 @@ void mover(char peleador, int identificador, int x, int y, WINDOW* ventana){
 int main(){
 	srand(time(NULL));
     WINDOW * mainwin;
-    
 
-    
     /*  Initialize ncurses  */
-
     if ( (mainwin = initscr()) == NULL ) {
 	fprintf(stderr, "Error initialising ncurses.\n");
 	exit(EXIT_FAILURE);
@@ -97,12 +94,12 @@ int main(){
     	limpiarbloque(x,y, mainwin);
     	//Elije la nueva posicion
     	posicionar(x,y,&x2,&y2,mainwin);
-    	//Mueve	
+    	//Mueve
 		mover('A',1,x2,y2,mainwin);
 		//Se modifican los nuevos x e y
 		x = x2;
 		y = y2;
-		getch();    	
+		getch();
     }
 
 
@@ -112,6 +109,6 @@ int main(){
     endwin();
     refresh();
 
-    return 0;	
+    return 0;
 
 }

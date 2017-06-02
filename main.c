@@ -3,8 +3,18 @@
 #include <unistd.h>
 #include <string.h>
 #include <ctype.h>
+#include <pthread.h>
 
-int parser(char *nombre);
+int parseAndCreate(char *nombre);
+void* hiloLuchador(void *newFighter);
+
+typedef struct entry
+{
+    char    *name;
+    int     energy;
+    int     universo;
+    int     color;
+} entry;
 
 int main(int argc, char* argv[])
 {
@@ -39,7 +49,7 @@ int main(int argc, char* argv[])
                 //  Si el número de valores asignados a size es distinto a 1, se informa el error
                 if(sscanf(optarg, "%d", &size) != 1)
                 {
-                    fprintf(stderr, "Las dimensiones del tablero ha sido ingresado de forma erronea.\n");
+                    fprintf(stderr, "Las dimensiones del tablero han sido ingresadas de forma erronea.\n");
                     fprintf(stderr, "Uso: ./laboratorio3 -I archivo_entrada.txt -N ancho_tablero -D opcion_debug.\n");
                     return 1;
                 }
@@ -108,27 +118,82 @@ int main(int argc, char* argv[])
         fprintf(stderr, "No se ingreso el parametro D.\n");
         return 1;
     }
-    parser(entries);
+    parseAndCreate(entries);
     return 0;
 }
 
-int parser(char *nombre)
+int parseAndCreate(char *nombre)
 {
+    //  Se abre el archivo con los datos de cada participante.
     FILE *io = fopen(nombre, "r");
+    //  Variable utilizada para leer el archivo línea por línea.
     char *line = NULL;
-    size_t len = 0;
-    ssize_t nread;
+    int bytes_leidos;
+    size_t len;
 
-    int energy, team, color;
+    //  Variable que contiene el número de threads.
+    int nThreads = 0;
+    //  Arreglo de threads, uno para cada participante.
+    pthread_t *fighters;
+
+    //  Variables en las que se almacenan los datos de cada participante.
+    int energy, universo, color;
     char* name = malloc(200);
 
-    while ((nread = getline(&line, &len, io)) != -1)
+    //  Contar los \n, crear arreglo de estructuras, releer el archivo, crear threads.
+
+    //  Variable utilizada para recorrer el archivo caracter por caracter,
+    //  así se obtiene el número de participantes a partir del número de \n's.
+    char c;
+    do
     {
-       sscanf(line, "%d %d %d %s", &energy, &team, &color, name);
-       printf("%d - %d - %d - %s\n", energy, team, color, name);
+        c = fgetc(io);
+        if(c == '\n')
+        {
+            nThreads++;
+        }
+        if(feof(io))
+        {
+            break;
+        }
+    }while(1);
+
+    fighters =  malloc(sizeof(pthread_t)*nThreads);
+    rewind(io);
+
+    int i = 0;
+    while ((bytes_leidos = getline(&line, &len, io)) != -1)
+    {
+       sscanf(line, "%d %d %d %s", &energy, &universo, &color, name);
+
+       entry *newFighter = malloc(sizeof(entry));
+       newFighter -> name = malloc(sizeof(char)*200);
+       strcpy(newFighter -> name, name);
+       newFighter -> energy = energy;
+       newFighter -> color = color;
+       newFighter -> universo = universo;
+
+       pthread_create(&fighters[i], NULL, hiloLuchador, (void *)newFighter);
+       i++;
+    }
+
+    for(i = 0; i < nThreads; i++)
+    {
+        pthread_join(fighters[i], NULL);
     }
 
     free(line);
     fclose(io);
     return 1;
+}
+
+void* hiloLuchador(void *newFighter)
+{
+    entry *fighter = (struct entry *)newFighter;
+    printf("NOMBRE: %s COLOR: %d UNIVERSO: %d HP: %d\n", fighter->name, fighter->color, fighter->universo, fighter->energy);
+
+    // Aquí ocurre la magia. literalmente...
+
+    free(fighter->name);
+    free(fighter);
 }
