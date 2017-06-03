@@ -5,11 +5,13 @@
 #include <ctype.h>
 #include <pthread.h>
 
+pthread_mutex_t mutex;
 int parseAndCreate(char *nombre);
 void* hiloLuchador(void *newFighter);
 
 typedef struct entry
 {
+    int x, y;
     char    *name;
     int     energy;
     int     universo;
@@ -118,6 +120,7 @@ int main(int argc, char* argv[])
         fprintf(stderr, "No se ingreso el parametro D.\n");
         return 1;
     }
+    srand(time(NULL));
     parseAndCreate(entries);
     return 0;
 }
@@ -140,7 +143,6 @@ int parseAndCreate(char *nombre)
     int energy, universo, color;
     char* name = malloc(200);
 
-    //  Contar los \n, crear arreglo de estructuras, releer el archivo, crear threads.
 
     //  Variable utilizada para recorrer el archivo caracter por caracter,
     //  así se obtiene el número de participantes a partir del número de \n's.
@@ -158,8 +160,17 @@ int parseAndCreate(char *nombre)
         }
     }while(1);
 
+    //  Se reserva memoria para los N threads y se ubica el cursor que lee el
+    //  archivo con los luchadores al principio.
     fighters =  malloc(sizeof(pthread_t)*nThreads);
     rewind(io);
+
+    //  Se inicializa el mutex.
+    if (pthread_mutex_init(&mutex, NULL) != 0)
+    {
+        printf("No se pudo inicializar el mutex\n");
+        return -1;
+    }
 
     int i = 0;
     while ((bytes_leidos = getline(&line, &len, io)) != -1)
@@ -184,18 +195,29 @@ int parseAndCreate(char *nombre)
 
     free(line);
     fclose(io);
+    pthread_mutex_destroy(&mutex);
     return 1;
 }
 
 void* hiloLuchador(void *newFighter)
 {
     entry *fighter = (struct entry *)newFighter;
-    printf("NOMBRE: %s COLOR: %d UNIVERSO: %d HP: %d\n", fighter->name, fighter->color, fighter->universo, fighter->energy);
-
     //  Aquí ocurre la magia.
     //  Primero ubico en el "tablero", posición random.
     //  Luego ocurre este ciclo.
+
+    printf("hello, i am %s and i am entering the cs\n", fighter->name);
+    pthread_mutex_lock(&mutex);
+    printf("hello, i'am %s, and i am at the cs\n", fighter->name);
+    while(1);
+    pthread_mutex_unlock(&mutex);
+    /*ACA HAY UN MUTEX LOCK*/
+    //SC, genero posiciones random.
+    /*ACA HAY UN MUTEX UNLOCK*/
+
     //  Si HP > 0
+
+
     //  1- Mover a una posición random. (thread safe)
     //      1.1- Aumentar ki (+1).
     //  2- Verificar si puede atacar. (thread safe)
