@@ -5,13 +5,17 @@
 #include <ctype.h>
 #include <pthread.h>
 
+int **tablero;
+int sizeT;
 pthread_mutex_t mutex;
 int parseAndCreate(char *nombre);
-void* hiloLuchador(void *newFighter);
+void *hiloLuchador(void *newFighter);
+
 
 typedef struct entry
 {
-    int x, y;
+    int posx;
+    int posy;
     char    *name;
     int     energy;
     int     universo;
@@ -20,9 +24,8 @@ typedef struct entry
 
 int main(int argc, char* argv[])
 {
-    char    *entries;
+    char    *entries = malloc(200);
     int     iflag = 0;
-    int     size;
     int     nflag = 0;
     int     debug;
     int     dflag = 0;
@@ -49,7 +52,7 @@ int main(int argc, char* argv[])
 				break;
             case 'N':
                 //  Si el número de valores asignados a size es distinto a 1, se informa el error
-                if(sscanf(optarg, "%d", &size) != 1)
+                if(sscanf(optarg, "%d", &sizeT) != 1)
                 {
                     fprintf(stderr, "Las dimensiones del tablero han sido ingresadas de forma erronea.\n");
                     fprintf(stderr, "Uso: ./laboratorio3 -I archivo_entrada.txt -N ancho_tablero -D opcion_debug.\n");
@@ -120,19 +123,38 @@ int main(int argc, char* argv[])
         fprintf(stderr, "No se ingreso el parametro D.\n");
         return 1;
     }
+
     srand(time(NULL));
+
+    /*  Se reserva memoria y se inicializa el tablero   */
+    int i = 0, j = 0;
+    tablero = malloc(sizeT * sizeof(int*));
+    for (i = 0; i < sizeT; i++)
+    {
+        tablero[i] = malloc(sizeT * sizeof(int));
+    }
+
+    for(i = 0; i < sizeT; i++)
+    {
+        for(j = 0; j < sizeT; j++)
+        {
+            tablero[i][j] = 0;
+        }
+    }
+
     parseAndCreate(entries);
     return 0;
 }
 
 int parseAndCreate(char *nombre)
 {
+
     //  Se abre el archivo con los datos de cada participante.
     FILE *io = fopen(nombre, "r");
     //  Variable utilizada para leer el archivo línea por línea.
     char *line = NULL;
-    int bytes_leidos;
-    size_t len;
+    size_t len = 0;
+    ssize_t bytes_leidos;
 
     //  Variable que contiene el número de threads.
     int nThreads = 0;
@@ -141,24 +163,18 @@ int parseAndCreate(char *nombre)
 
     //  Variables en las que se almacenan los datos de cada participante.
     int energy, universo, color;
-    char* name = malloc(200);
-
+    char* name = malloc(sizeof(char)*200);
 
     //  Variable utilizada para recorrer el archivo caracter por caracter,
     //  así se obtiene el número de participantes a partir del número de \n's.
-    char c;
-    do
+    char c = 0;
+    while((c = fgetc(io)) != EOF)
     {
-        c = fgetc(io);
-        if(c == '\n')
+        if (c == '\n')
         {
             nThreads++;
         }
-        if(feof(io))
-        {
-            break;
-        }
-    }while(1);
+    }
 
     //  Se reserva memoria para los N threads y se ubica el cursor que lee el
     //  archivo con los luchadores al principio.
@@ -202,18 +218,27 @@ int parseAndCreate(char *nombre)
 void* hiloLuchador(void *newFighter)
 {
     entry *fighter = (struct entry *)newFighter;
+
     //  Aquí ocurre la magia.
     //  Primero ubico en el "tablero", posición random.
     //  Luego ocurre este ciclo.
-
-    printf("hello, i am %s and i am entering the cs\n", fighter->name);
     pthread_mutex_lock(&mutex);
-    printf("hello, i'am %s, and i am at the cs\n", fighter->name);
-    while(1);
+    do
+    {
+        fighter -> posx = rand()%sizeT;
+        fighter -> posy = rand()%sizeT;
+    }while(tablero[fighter -> posx][fighter->posy] != 0);
+    printf("Posicion random: %d %d\n", fighter->posx, fighter->posy);
+    tablero[fighter -> posx][fighter -> posy] = 1;
+    for(int i = 0; i < sizeT; i++)
+    {
+        for(int j = 0; j < sizeT; j++)
+        {
+            printf("%d ", tablero[i][j]);
+        }
+        printf("\n");
+    }
     pthread_mutex_unlock(&mutex);
-    /*ACA HAY UN MUTEX LOCK*/
-    //SC, genero posiciones random.
-    /*ACA HAY UN MUTEX UNLOCK*/
 
     //  Si HP > 0
 
@@ -227,6 +252,6 @@ void* hiloLuchador(void *newFighter)
     //  3- Verificar si ha sido atacado. (thread safe)
     //      3.1- Restar el ataque del HP si fue atacado.
 
-    free(fighter->name);
-    free(fighter);
+    //free(fighter->name);
+    //free(fighter);
 }
