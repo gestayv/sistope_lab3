@@ -12,7 +12,9 @@ void limpiarbloque(int x, int y, WINDOW* ventana);
 
 void posicionar(int x, int y, int* x2, int* y2, WINDOW* ventana);
 
-void mover(char peleador, int identificador, int x, int y, WINDOW* ventana);
+void mover(char* peleador, int identificador, int x, int y, WINDOW* ventana);
+
+void escribirStat(WINDOW* ventana, int linea, int hp, int universo, int ki, int color, char* nombre);
 
 
 
