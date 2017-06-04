@@ -1,9 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <ncurses.h>
-#include <time.h>
+#include "gnu.h"
 
 /*Funcion limpiarbloque: Limpia el bloque en la posicion (x,y) */
 void limpiarbloque(int x, int y, WINDOW* ventana){
@@ -21,7 +16,7 @@ void posicionar(int x, int y, int* x2, int* y2, WINDOW* ventana){
 	int random = rand() % 5;
 	switch(random){
 		case 0:
-			if(x+1 < Xmax){
+			if(x+1 < Xmax-1){
 				*x2 = x + 1;
 			}
 			*y2 = y;
@@ -34,7 +29,7 @@ void posicionar(int x, int y, int* x2, int* y2, WINDOW* ventana){
 			break;
 		case 2:
 			*x2 = x;
-			if(y+1 < Ymax){
+			if(y+1 < Ymax-1){
 				*y2 = y + 1;
 			}
 			break;
@@ -63,28 +58,37 @@ void mover(char peleador, int identificador, int x, int y, WINDOW* ventana){
 
 int main(){
 	srand(time(NULL));
-    WINDOW * mainwin;
+	initscr();
+    WINDOW * mainwin = initscr();
 
     /*  Initialize ncurses  */
-    if ( (mainwin = initscr()) == NULL ) {
+    if  (mainwin == NULL ) {
 	fprintf(stderr, "Error initialising ncurses.\n");
 	exit(EXIT_FAILURE);
     }
 
-
-    initscr();
+    /*Colores */
     start_color();
+    init_pair(0, COLOR_BLACK,COLOR_BLACK);
+    init_pair(1, COLOR_YELLOW, COLOR_BLACK);
+    init_pair(2, COLOR_RED, COLOR_BLACK);
+    init_pair(3, COLOR_BLUE, COLOR_BLACK);
 
-    init_pair(0, COLOR_BLUE,COLOR_BLUE);
-    init_pair(1, COLOR_YELLOW, COLOR_BLUE);
-    init_pair(2, COLOR_RED, COLOR_BLUE);
+    //Pone la terminal en nxn
+    wresize(mainwin,20,25);
+	curs_set(0);
+    /*Tablero principal */
     attron(COLOR_PAIR(2));
     wborder(mainwin,0,0,0,0,ACS_BULLET,ACS_BULLET,ACS_BULLET,ACS_BULLET);
     attroff(COLOR_PAIR(2));
     refresh();
     getch();
-    int x = 20;
-    int y = 20;
+    int x = 10;
+    int y = 10;
+    int xx = 1;
+    int yy = 1;
+    int xx2;
+    int yy2;
     int x2;
     int y2;
 
@@ -92,13 +96,18 @@ int main(){
     while(true){
     	//Limpia el bloque anterior
     	limpiarbloque(x,y, mainwin);
+    	limpiarbloque(xx,yy,mainwin);
     	//Elije la nueva posicion
     	posicionar(x,y,&x2,&y2,mainwin);
+    	posicionar(xx,yy,&xx2,&yy2,mainwin);
     	//Mueve
 		mover('A',1,x2,y2,mainwin);
+		mover('B',3,xx2,yy2,mainwin);
 		//Se modifican los nuevos x e y
 		x = x2;
 		y = y2;
+		xx = xx2;
+		yy = yy2;
 		getch();
     }
 
