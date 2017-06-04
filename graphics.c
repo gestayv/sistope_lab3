@@ -1,4 +1,4 @@
-#include "gnu.h"
+#include "graphics.h"
 
 /*Funcion limpiarbloque: Limpia el bloque en la posicion (x,y) */
 void limpiarbloque(int x, int y, WINDOW* ventana){
