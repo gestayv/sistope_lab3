@@ -293,7 +293,7 @@ void* hiloLuchador(void *newFighter)
 
         printf("thread %s wating, ki: %d", fighter->name, fighter->ki);
         pthread_mutex_lock(&mutex);
-        getchar();
+        sleep(1);
         printf("\n");
         for(int i = 0; i < sizeT; i++)
         {
