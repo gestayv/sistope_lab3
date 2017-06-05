@@ -54,6 +54,8 @@ void mover(char* peleador, int identificador, int x, int y, WINDOW* ventana){
 	attroff(COLOR_PAIR(identificador));
 }
 
+
+
 void escribirStat(WINDOW* ventana, int linea, int hp, int universo, int ki, int color, char* nombre){
 	/*limpiar la linea */
 	wmove(ventana,2+linea,0);
@@ -65,13 +67,26 @@ void escribirStat(WINDOW* ventana, int linea, int hp, int universo, int ki, int 
 	sprintf(hpS,"%d",hp);
 	char kiS[5];
 	sprintf(kiS,"%d",ki);
+
 	/*Impresion*/
+	wattron(ventana, COLOR_PAIR(color));
 	mvwprintw(ventana,2+linea,1,nombre);
 	mvwprintw(ventana,2+linea,12,universoS);
 	mvwprintw(ventana,2+linea,21,hpS);
 	mvwprintw(ventana,2+linea,26,kiS);
+	wattroff(ventana,COLOR_PAIR(color));
 	/*refresh*/
 	wrefresh(ventana);
+}
+
+
+
+void mostrarDmg(char* nombre,int color,int x, int y){
+	init_pair(99,color,COLOR_RED);
+	attron(COLOR_PAIR(99));
+	mvaddstr(y,x,nombre);
+	attroff(COLOR_PAIR(99));
+	refresh();
 }
 
 int main(){
@@ -86,11 +101,29 @@ int main(){
 
     /*Colores */
     start_color();
-    init_pair(0, COLOR_BLACK,COLOR_BLACK);
-    init_pair(1, COLOR_YELLOW, COLOR_BLACK);
-    init_pair(2, COLOR_RED, COLOR_BLACK);
+    init_pair(0, COLOR_BLACK,COLOR_BLACK); //Color del fondo
+    init_pair(1, COLOR_YELLOW, COLOR_BLACK); //
+    init_pair(2, COLOR_RED, COLOR_BLACK);	//Color del borde del tablero.
     init_pair(3, COLOR_BLUE, COLOR_BLACK);
+    init_pair(4, COLOR_GREEN, COLOR_BLACK);
+    init_pair(5, COLOR_MAGENTA, COLOR_BLACK);
+    init_pair(6, COLOR_CYAN, COLOR_BLACK);
+    init_pair(7, COLOR_WHITE, COLOR_BLACK);
+    init_color(8,250,128,114);
+    init_pair(8,8,COLOR_BLACK);
+    init_color(9,128,0,128);
+    init_pair(9,9,COLOR_BLACK);
+    init_color(10,0,255,255);
+    init_pair(10,10,COLOR_BLACK);
 
+    
+    
+
+
+
+         
+            
+         
     //Pone la terminal en nxn
     wresize(mainwin,20,25);
 	curs_set(1);
@@ -103,7 +136,7 @@ int main(){
     getch();
 
     WINDOW* second;
-    second = newwin(20,30,0,25);
+    second = newwin(20,32,0,26);
     wborder(second,0,0,0,0,ACS_BULLET,ACS_BULLET,ACS_BULLET,ACS_BULLET);
    	wrefresh(second);
 
@@ -136,19 +169,21 @@ int main(){
     	posicionar(x,y,&x2,&y2,mainwin);
     	posicionar(xx,yy,&xx2,&yy2,mainwin);
     	//Mueve
-		mover("A",1,x2,y2,mainwin);
-		mover("B",3,xx2,yy2,mainwin);
+		mover("A",9,x2,y2,mainwin);
+		mover("B",8,xx2,yy2,mainwin);
 		//Se modifican los nuevos x e y
 		x = x2;
 		y = y2;
 		xx = xx2;
 		yy = yy2;
 
-		escribirStat(second,1,10,1,ki,1,"A");
-		escribirStat(second,2,10,1,ki2,3,"B");
+		escribirStat(second,1,10,1,ki,9,"A");
+		escribirStat(second,2,10,1,ki2,8,"B");
 
 		ki = ki+5;
 		ki2 = ki2+2;
+
+		
 
 		getch();
     }
