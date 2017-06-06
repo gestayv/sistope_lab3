@@ -7,6 +7,8 @@
 #include <string.h>
 #include <ncurses.h>
 #include <time.h>
+#include <pthread.h>
+#include <ctype.h>
 
 void limpiarbloque(int x, int y, WINDOW* ventana);
 
