@@ -1,22 +1,20 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <ctype.h>
-#include <pthread.h>
+#include "graphics.h"
 
+//  Variable que cuenta el número de threads.
+int numThreads, numThreadsAux;
 //  Tablero de 1 y 0 en el cual se ubican los luchadores.
 int **tablero;
 //  Variable que almacena el tamaño del tablero.
 int sizeT;
 //  Mutex a ser utilizado para proteger secciones críticas.
 pthread_mutex_t mutex;
-
-int test = 0;
+//  Variable condición para crear una barrera
+pthread_barrier_t barrera;
 
 //  Cabeceras de las funciones definidas luego del main.
 int parseAndCreate(char *nombre);
 void *hiloLuchador(void *newFighter);
+void prueba();
 
 //  Estructura con los datos de cada luchador.
 typedef struct entry
@@ -170,8 +168,11 @@ int parseAndCreate(char *nombre)
 
     //  Variable que contiene el número de threads.
     int nThreads = 0;
+
     //  Arreglo de threads, uno para cada participante.
     pthread_t *fighters;
+
+    pthread_t update;
 
     //  Se recorre el archivo caracter por caracter para saber el número de luchadores.
     char c = 0;
@@ -182,6 +183,9 @@ int parseAndCreate(char *nombre)
             nThreads++;
         }
     }
+
+    numThreads = nThreads;
+    numThreadsAux = nThreads;
 
     //  Se reserva memoria para los N threads y se ubica el cursor que lee el
     //  archivo con los luchadores al principio.
@@ -194,6 +198,12 @@ int parseAndCreate(char *nombre)
     if (pthread_mutex_init(&mutex, NULL) != 0)
     {
         printf("No se pudo inicializar el mutex\n");
+        return -1;
+    }
+
+    if (pthread_barrier_init(&barrera, NULL, numThreads) != 0)
+    {
+        printf("No se pudo inicializar la variable de condicion\n");
         return -1;
     }
 
@@ -216,25 +226,15 @@ int parseAndCreate(char *nombre)
     free(line);
     fclose(io);
     pthread_mutex_destroy(&mutex);
+    pthread_barrier_destroy(&barrera);
     return 1;
 }
 
-void* hiloLuchador(void *newFighter)
+void prueba()
 {
-    entry *fighter = (struct entry *)newFighter;
-
-    //  Se ubica un mutex para que entre solo una hebra a la sgte sección de código.
-    pthread_mutex_lock(&mutex);
-    //  Sección crítica: Se ubican los luchadores en el tablero antes de comenzar el encuentro.
-    //  De esta manera se evita que dos luchadores queden ocupando la misma posición.
-    do{
-        fighter -> posx = rand()%sizeT;
-        fighter -> posy = rand()%sizeT;
-    }while(tablero[fighter -> posx][fighter->posy] != 0);
-
-    tablero[fighter -> posx][fighter -> posy] = 1;
-    /*
-    printf("\n");
+    //usleep(100000);
+    //sleep(1);
+    //  Meter en un thread? variables de condición...
     for(int i = 0; i < sizeT; i++)
     {
         for(int j = 0; j < sizeT; j++)
@@ -243,71 +243,97 @@ void* hiloLuchador(void *newFighter)
         }
         printf("\n");
     }
-    */
+    printf("\n");
+}
+
+
+void* hiloLuchador(void *newFighter)
+{
+    int nThreads;
+    entry *fighter = (struct entry *)newFighter;
+    //  Se ubica un mutex para que entre solo una hebra a la sgte sección de código.
+    pthread_mutex_lock(&mutex);
+    //  Sección crítica: Se ubican los luchadores en el tablero antes de comenzar el encuentro.
+    //  De esta manera se evita que dos luchadores queden ocupando la misma posición.
+    do{
+        fighter -> posx = rand()%sizeT;
+        fighter -> posy = rand()%sizeT;
+    }while(tablero[fighter -> posx][fighter->posy] != 0);
+    tablero[fighter -> posx][fighter -> posy] = 1;
     //  Se desbloquea el mutex.
     pthread_mutex_unlock(&mutex);
 
-    pthread_mutex_lock(&mutex);
-    test++;
-    printf("%d \n", test);
-    pthread_mutex_unlock(&mutex);
-
-    while(test != 8);
-
     //  Si HP > 0
-    int mov = 0, x_aux = 0, y_aux = 0;
+    int mov = 0, x_aux = 0, y_aux = 0, valido = 1;
     while(fighter->hp > 0)
     {
         pthread_mutex_lock(&mutex);
         do
         {
-            mov = rand()%50;
-            if(mov < 10 && fighter->posx > 0)
-            {
-                x_aux = fighter->posx - 1;
-            }
-            else if(mov >= 10 && mov < 20 && fighter->posx < sizeT - 1)
-            {
-                x_aux = fighter->posx + 1;
-            }
-            else if(mov >= 20 && mov < 30 && fighter->posy > 0)
-            {
-                y_aux = fighter->posy - 1;
-            }
-            else if(mov >= 30 && mov < 40  && fighter->posy < sizeT - 1)
-            {
-                y_aux = fighter->posy + 1;
-            }
-            else if(mov >= 40 && mov < 50)
+            mov = rand()%500;
+
+            if(mov >= 0 && mov < 100)
             {
                 x_aux = fighter->posx;
                 y_aux = fighter->posy;
             }
+            else if(mov >= 100 && mov < 200 && fighter->posx < sizeT - 1)
+            {
+                x_aux = fighter->posx+1;
+                y_aux = fighter->posy;
+            }
+            else if(mov >= 200 && mov < 300 && fighter->posx > 0)
+            {
+                x_aux = fighter->posx-1;
+                y_aux = fighter->posy;
+            }
+            else if(mov >= 300 && mov < 400 && fighter->posy < sizeT - 1)
+            {
+                x_aux = fighter->posx;
+                y_aux = fighter->posy+1;
+            }
+            else if(mov >= 400 && mov < 500 && fighter->posy > 0)
+            {
+                x_aux = fighter->posx;
+                y_aux = fighter->posy-1;
+
+            }
         }while(tablero[x_aux][y_aux] != 0);
+
         tablero[fighter->posx][fighter->posy] = 0;
+        tablero[x_aux][y_aux] = 1;
         fighter->posx = x_aux;
         fighter->posy = y_aux;
-        fighter->ki += 5;
-        tablero[fighter->posx][fighter->posy] = 1;
+        fighter->ki += 1;
         pthread_mutex_unlock(&mutex);
 
-        printf("thread %s wating, ki: %d", fighter->name, fighter->ki);
-        pthread_mutex_lock(&mutex);
+        pthread_barrier_wait(&barrera);
+
         sleep(1);
-        printf("\n");
-        for(int i = 0; i < sizeT; i++)
+        pthread_mutex_lock(&mutex);
+        numThreads--;
+        if(numThreads == 0)
         {
-            for(int j = 0; j < sizeT; j++)
+            for(int i = 0; i < sizeT; i++)
             {
-                printf("%d ", tablero[i][j]);
+                for(int j = 0; j < sizeT; j++)
+                {
+                    printf("%d ", tablero[i][j]);
+                }
+                printf("\n");
             }
             printf("\n");
+            numThreads = numThreadsAux;
         }
         pthread_mutex_unlock(&mutex);
 
+
+
+
         fighter->hp = fighter->hp - 100;
     }
-    printf("%s is ded\n", fighter->name);
+
+
     //  Verifico si gané o no. Como? (variable compartida que cuente los luchadores muertos?)
     //  1- Mover a una posición random. (thread safe)
     //      1.1- Aumentar ki (+1).
@@ -318,6 +344,6 @@ void* hiloLuchador(void *newFighter)
     //  3- Verificar si ha sido atacado. (thread safe)
     //      3.1- Restar el ataque del HP si fue atacado.
 
-    //free(fighter->name);
-    //free(fighter);
+    free(fighter->name);
+    free(fighter);
 }
