@@ -194,6 +194,8 @@ int parseAndCreate(char *nombre)
     //  Se devuelve el cursor al principio del archivo.
     rewind(io);
 
+    
+
     //  Se inicializa el mutex.
     if (pthread_mutex_init(&mutex, NULL) != 0)
     {
