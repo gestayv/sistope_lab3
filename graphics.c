@@ -1,16 +1,16 @@
 #include "graphics.h"
 //P corresponde al peliador
-/*Funcion limpiarbloque: Limpia el bloque en la posicion (x,y) 
+/*Funcion limpiarbloque: Limpia el bloque en la posicion (x,y)
 	EJ: limpiarbloque(P->posx,P->posY,mainwin)
 */
 
 void limpiarbloque(int x, int y, WINDOW* ventana){
 	attron(COLOR_PAIR(0));
-	mvaddstr(y, x, " ");
+	mvaddstr(y+1, x+1, " ");
 	attroff(COLOR_PAIR(0));
 }
 
-/*Funcion posicionar. Escoge una nueva posicion (x2,y2) al azar desde la posicion actual (x,y) 
+/*Funcion posicionar. Escoge una nueva posicion (x2,y2) al azar desde la posicion actual (x,y)
 	EJ: posicionar(P->posx,P->posy.&P->posx,&P->posy,mainwin)
 */
 void posicionar(int x, int y, int* x2, int* y2, WINDOW* ventana){
@@ -52,19 +52,19 @@ void posicionar(int x, int y, int* x2, int* y2, WINDOW* ventana){
 }
 
 
-/*Funcion mover: mueve al caracter Peleador de "identificador" color a la posicion (x,y) 
+/*Funcion mover: mueve al caracter Peleador de "identificador" color a la posicion (x,y)
 	EJ: mover(P->name[0],P->color,P->posx,P->posy);
 */
 void mover(char nombre, int identificador, int x, int y, WINDOW* ventana){
 	attron(COLOR_PAIR(identificador));
-	move(x,y);
-	mvwaddch(ventana, y, x, nombre);
+	move(y+1,x+1);
+	mvwaddch(ventana, y+1, x+1, nombre);
 	attroff(COLOR_PAIR(identificador));
-	
+
 }
 
 
-/*Escribe el dato en la pantalla de informacion 
+/*Escribe el dato en la pantalla de informacion
 	EJ: escribirStat (linea, P->hp, P->universo, P->ki, P->color, P->name,second)
   */
 void escribirStat(int linea, int hp, int universo, int ki, int color, char* nombre, WINDOW* ventana){
@@ -86,7 +86,7 @@ void escribirStat(int linea, int hp, int universo, int ki, int color, char* nomb
 	mvwprintw(ventana,2+linea,21,hpS);
 	mvwprintw(ventana,2+linea,26,kiS);
 	wattroff(ventana,COLOR_PAIR(color));
-	
+
 	/*refresh*/
 }
 
@@ -137,23 +137,24 @@ int inicializarPantalla(int n, int numero){
     init_pair(6, COLOR_CYAN, COLOR_BLACK);
     init_pair(7, COLOR_WHITE, COLOR_BLACK);
     init_color(8,250,128,114);
-    init_pair(8,8,COLOR_BLACK);	
+    init_pair(8,8,COLOR_BLACK);
     init_color(9,128,0,128);
     init_pair(9,9,COLOR_BLACK);
     init_color(10,0,255,255);
     init_pair(10,10,COLOR_BLACK);
 
-         
-    //Pone la terminal en nxn
-    wresize(mainwin,n,n);
-	curs_set(0);
 
+    //Pone la terminal en nxn
+    wresize(mainwin,n+2,n+2);
+	curs_set(0);
+	wmove(mainwin, 1, 1);
     /*Tablero principal */
     attron(COLOR_PAIR(2));
     wborder(mainwin,0,0,0,0,ACS_BULLET,ACS_BULLET,ACS_BULLET,ACS_BULLET);
     attroff(COLOR_PAIR(2));
 
     pantallaPunt(n,numero);
+	wrefresh(mainwin);
 }
 
 
@@ -161,7 +162,7 @@ int inicializarPantalla(int n, int numero){
 	EJ: finishScreen(P->universo, n, finale) */
 void finishScreen(int universo, int n , WINDOW* ventana){
 
-	finale = newwin(n,n,0,0);
+	finale = newwin(n+2,n+2,0,0);
 	wborder(finale,'$','$','$','$','$','$','$','$');
 	int x, y;
 	getmaxyx(finale,y,x);
@@ -193,14 +194,14 @@ int test(){
     init_pair(6, COLOR_CYAN, COLOR_BLACK);
     init_pair(7, COLOR_WHITE, COLOR_BLACK);
     init_color(8,250,128,114);
-    init_pair(8,8,COLOR_BLACK);	
+    init_pair(8,8,COLOR_BLACK);
     init_color(9,128,0,128);
     init_pair(9,9,COLOR_BLACK);
     init_color(10,0,255,255);
     init_pair(10,10,COLOR_BLACK);
 
  	int n = 50;
-         
+
     //Pone la terminal en nxn
     wresize(mainwin,n,n);
 	curs_set(0);
@@ -221,7 +222,7 @@ int test(){
     int x2;
     int y2;
 
-    
+
 
     int ki = 10;
     int ki2 = 15;
@@ -237,7 +238,7 @@ int test(){
 		mover('A',9,x2,y2,mainwin);
 		mover('B',8,xx2,yy2,mainwin);
 		//Se modifican los nuevos x e y
-		x = x2;	
+		x = x2;
 		y = y2;
 		xx = xx2;
 		yy = yy2;
@@ -262,20 +263,3 @@ int test(){
     refresh();
     return 0;
 }
-
-int main(int argc, char const *argv[])
-{
-	inicializarPantalla(40,7);
-	getch();
-	finishScreen(1,40,finale);
-	wrefresh(finale);
-	getch();
-
-	delwin(mainwin);
-	delwin(second);
-	delwin(finale);
-	endwin();
-	refresh();
-	return 0;
-}
-	

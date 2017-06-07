@@ -13,7 +13,7 @@ typedef struct entry
     int     ki;         //  Ki del peleador.
     int     universo;   //  Universo del peleador.
     int     color;      //  Color del peleador.
-    int     posArr;     //  Posición del peleador en el arreglo de universos.
+    int     posArr;     //  Posición del peleador en el arreglo de universos
 } entry;
 
 //  Variables que almacenan el número de threads.
@@ -37,6 +37,7 @@ WINDOW* mainwin;
 WINDOW* second;
 //	Ventalla de finalizacion, donde se ven el universo ganador
 WINDOW* finale;
+
 
 void* hiloLuchador(void *newFighter);
 

@@ -6,5 +6,5 @@
 4689 4 03 Mosco
 6981 5 06 Cabba
 7891 5 06 Frost
-10000 3 06 Trump
-10000 3 06 Trump2
+5000 3 06 Trump
+8000 3 06 Rannou

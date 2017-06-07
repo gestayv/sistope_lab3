@@ -1,4 +1,5 @@
 #include "fighters.h"
+#include "graphics.h"
 
 //  Cabeceras de las funciones definidas luego del main.
 int parseAndCreate(char *nombre, int debug);
@@ -168,6 +169,8 @@ int parseAndCreate(char *nombre, int debug)
     //  archivo con los luchadores al principio.
     fighters =  malloc(sizeof(pthread_t)*nThreads);
     universos = malloc(sizeof(int)*nThreads);
+    inicializarPantalla(sizeT, nThreads);
+
 
     //  Se devuelve el cursor al principio del archivo.
     rewind(io);
@@ -195,7 +198,7 @@ int parseAndCreate(char *nombre, int debug)
         sscanf(line, "%d %d %d %s", &newFighter->hp, &newFighter->color, &newFighter->universo, newFighter->name);
         if(debug == 1)
         {
-            printf("Hp: %d Color: %d Universo: %d  Luchador: %s\n", newFighter->hp, newFighter->color, newFighter->universo, newFighter->name);
+            //printf("Hp: %d Color: %d Universo: %d  Luchador: %s\n", newFighter->hp, newFighter->color, newFighter->universo, newFighter->name);
         }
 
         universos[i] = newFighter->universo;
@@ -209,6 +212,16 @@ int parseAndCreate(char *nombre, int debug)
     {
         pthread_join(fighters[i], NULL);
     }
+
+    finishScreen(finish, sizeT, finale);
+    wrefresh(finale);
+
+    getchar();
+    delwin(mainwin);
+    delwin(second);
+    delwin(finale);
+    endwin();
+    refresh();
 
     free(line);
     fclose(io);
