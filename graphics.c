@@ -3,6 +3,7 @@
 /*Funcion limpiarbloque: Limpia el bloque en la posicion (x,y) 
 	EJ: limpiarbloque(P->posx,P->posY,mainwin)
 */
+
 void limpiarbloque(int x, int y, WINDOW* ventana){
 	attron(COLOR_PAIR(0));
 	mvaddstr(y, x, " ");
@@ -50,20 +51,21 @@ void posicionar(int x, int y, int* x2, int* y2, WINDOW* ventana){
 	}
 }
 
+
 /*Funcion mover: mueve al caracter Peleador de "identificador" color a la posicion (x,y) 
-	EJ: mover(P->nombre[0],P->color,P->posx,P->posy);
+	EJ: mover(P->name[0],P->color,P->posx,P->posy);
 */
 void mover(char nombre, int identificador, int x, int y, WINDOW* ventana){
 	attron(COLOR_PAIR(identificador));
 	move(x,y);
 	mvwaddch(ventana, y, x, nombre);
 	attroff(COLOR_PAIR(identificador));
-	refresh();
+	
 }
 
 
 /*Escribe el dato en la pantalla de informacion 
-	EJ: escribirStat ()
+	EJ: escribirStat (linea, P->hp, P->universo, P->ki, P->color, P->name,second)
   */
 void escribirStat(int linea, int hp, int universo, int ki, int color, char* nombre, WINDOW* ventana){
 	/*limpiar la linea */
@@ -78,29 +80,44 @@ void escribirStat(int linea, int hp, int universo, int ki, int color, char* nomb
 	sprintf(kiS,"%d",ki);
 
 	/*Impresion*/
-	wattron(ventana, COLOR_PAIR(color));
+	wattron(ventana,COLOR_PAIR(color));
 	mvwprintw(ventana,2+linea,1,nombre);
 	mvwprintw(ventana,2+linea,12,universoS);
 	mvwprintw(ventana,2+linea,21,hpS);
 	mvwprintw(ventana,2+linea,26,kiS);
 	wattroff(ventana,COLOR_PAIR(color));
+	
 	/*refresh*/
-	wrefresh(ventana);
 }
 
 
-
-void mostrarDmg(char* nombre,int color,int x, int y){
+/*mostrarDmg. Funcion que muestra el fondo rojo
+	mostrarDmg(P->nombre[0],P->color,P->posx,P->posy,ventana)*/
+void mostrarDmg(char nombre,int color,int x, int y, WINDOW* ventana){
 	init_pair(99,color,COLOR_RED);
 	attron(COLOR_PAIR(99));
-	mvaddstr(y,x,nombre);
+	mvwaddch(ventana,y,x,nombre);
 	attroff(COLOR_PAIR(99));
-	refresh();
+
 }
 
-int main(){
-	srand(time(NULL));
-    WINDOW * mainwin = initscr();
+WINDOW* mainwin;
+WINDOW* second;
+
+void pantallaPunt(int n, int numero){
+	//Se crea la segunda pantalla
+    second = newwin(6+numero,32,0,n+2);
+    wborder(second,0,0,0,0,ACS_BULLET,ACS_BULLET,ACS_BULLET,ACS_BULLET);
+   	//wrefresh(second);
+   	mvwprintw(second,1,1,"Nombre");
+   	mvwprintw(second,1,12,"Univ");
+   	mvwprintw(second,1,21,"HP");
+   	mvwprintw(second,1,26,"KI");
+   	wrefresh(second);
+   	}
+
+int inicializarPantalla(int n, int numero){
+	mainwin = initscr();
 
     /*  Initialize ncurses  */
     if  (mainwin == NULL ) {
@@ -125,7 +142,6 @@ int main(){
     init_color(10,0,255,255);
     init_pair(10,10,COLOR_BLACK);
 
- 	int n = 100;
          
     //Pone la terminal en nxn
     wresize(mainwin,n,n);
@@ -135,43 +151,73 @@ int main(){
     attron(COLOR_PAIR(2));
     wborder(mainwin,0,0,0,0,ACS_BULLET,ACS_BULLET,ACS_BULLET,ACS_BULLET);
     attroff(COLOR_PAIR(2));
-    wrefresh(mainwin);
-    getch();
 
-    WINDOW* second;
-    second = newwin(20,32,0,n+2);
-    wborder(second,0,0,0,0,ACS_BULLET,ACS_BULLET,ACS_BULLET,ACS_BULLET);
-   	wrefresh(second);
+    pantallaPunt(n,numero);
+}
 
-   	mvwprintw(second,1,1,"Nombre");
-   	mvwprintw(second,1,12,"Univ");
-   	mvwprintw(second,1,21,"HP");
-   	mvwprintw(second,1,26,"KI");
-   	wrefresh(second);
+/*Funcion para ejemplar  */
+int test(){
+	srand(time(NULL));
+    mainwin = initscr();
 
+    /*  Initialize ncurses  */
+    if  (mainwin == NULL ) {
+	fprintf(stderr, "Error initialising ncurses.\n");
+	exit(EXIT_FAILURE);
+    }
 
+    /*Colores */
+    start_color();
+    init_pair(0, COLOR_BLACK,COLOR_BLACK); //Color del fondo
+    init_pair(1, COLOR_YELLOW, COLOR_BLACK); //
+    init_pair(2, COLOR_RED, COLOR_BLACK);	//Color del borde del tablero.
+    init_pair(3, COLOR_BLUE, COLOR_BLACK);
+    init_pair(4, COLOR_GREEN, COLOR_BLACK);
+    init_pair(5, COLOR_MAGENTA, COLOR_BLACK);
+    init_pair(6, COLOR_CYAN, COLOR_BLACK);
+    init_pair(7, COLOR_WHITE, COLOR_BLACK);
+    init_color(8,250,128,114);
+    init_pair(8,8,COLOR_BLACK);	
+    init_color(9,128,0,128);
+    init_pair(9,9,COLOR_BLACK);
+    init_color(10,0,255,255);
+    init_pair(10,10,COLOR_BLACK);
+
+ 	int n = 50;
+         
+    //Pone la terminal en nxn
+    wresize(mainwin,n,n);
+	curs_set(0);
+
+    /*Tablero principal */
+    attron(COLOR_PAIR(2));
+    wborder(mainwin,0,0,0,0,ACS_BULLET,ACS_BULLET,ACS_BULLET,ACS_BULLET);
+    attroff(COLOR_PAIR(2));
 
 
     /*Datos de prueba*/
     int x = 10;
     int y = 10;
-    int xx = 1;
-    int yy = 1;
+    int xx = 20;
+    int yy = 20;
     int xx2;
     int yy2;
     int x2;
     int y2;
 
+    
+
     int ki = 10;
     int ki2 = 15;
+
     while(true){
-    	//Limpia el bloque anterior
+    	//Limpia el bloque con la posicion anterior
     	limpiarbloque(x,y, mainwin);
     	limpiarbloque(xx,yy,mainwin);
     	//Elije la nueva posicion
     	posicionar(x,y,&x2,&y2,mainwin);
     	posicionar(xx,yy,&xx2,&yy2,mainwin);
-    	//Mueve
+    	//Mueve hacia la posicion nueva
 		mover('A',9,x2,y2,mainwin);
 		mover('B',8,xx2,yy2,mainwin);
 		//Se modifican los nuevos x e y
@@ -180,12 +226,15 @@ int main(){
 		xx = xx2;
 		yy = yy2;
 
+		/*Imprime en la pantalla de puntaje */
 		escribirStat(1,10,1,ki,9,"A",second);
 		escribirStat(2,10,1,ki2,8,"B",second);
+		wrefresh(second);
 
 		ki = ki+5;
 		ki2 = ki2+2;
 
+		refresh();
 		getch();
     }
 
@@ -195,8 +244,17 @@ int main(){
     delwin(mainwin);
     endwin();
     refresh();
-
     return 0;
+}
 
+int main(int argc, char const *argv[])
+{
+	inicializarPantalla(40,7);
+	//getch();
+	delwin(mainwin);
+	delwin(second);
+	endwin();
+	refresh();
+	return 0;
 }
 	
