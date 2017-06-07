@@ -88,8 +88,11 @@ void moveFighter(entry *fighter)
                 y_aux = fighter->posy-1;
             }
         }
-        if(x_aux == fighter->posx && y_aux == fighter->posy) same = 1;
-    }while(tablero[x_aux][y_aux] != 0 || same != 1);
+        if(x_aux == fighter->posx && y_aux == fighter->posy)
+        {
+            same = 1;
+        }
+    }while(tablero[x_aux][y_aux] != 0 && same != 1);
 
     tablero[fighter->posx][fighter->posy] = 0;
     tablero[x_aux][y_aux] = 1;
@@ -151,10 +154,11 @@ int checkDamage(entry *fighter)
     {
         int hpaux = fighter->hp;
         fighter->hp = fighter->hp - tablero[fighter->posx][fighter->posy];
+        printf("%s recibio %d de daño, HP: %d\n", fighter->name, hpaux-fighter->hp, fighter->hp);
+
         tablero[fighter->posx][fighter->posy] = 1;
         if(fighter->hp <= 0)
         {
-            printf("%s recibio %d de daño, HP: %d\n", fighter->name, hpaux-fighter->hp, fighter->hp);
             universos[fighter->posArr] = -1;
             return 1;
         }
@@ -168,7 +172,6 @@ int victoryCondition()
     int aux = -1;
     for(i = 0; i < numThreads; i++)
     {
-        printf("HERE\n");
         if(aux == -1)
         {
             if(universos[i] != -1)
@@ -183,9 +186,8 @@ int victoryCondition()
                 return 1;
             }
         }
-
     }
-    return 0;
+    return aux;
 }
 
 //  hiloLuchador: Rutina de inicio de cada thread de cada luchador.
@@ -203,8 +205,9 @@ void* hiloLuchador(void *newFighter)
     //  Se desbloquea el mutex.
     pthread_mutex_unlock(&mutex);
     //  Si HP > 0
-    while(finish)
+    while(finish == 1)
     {
+        pthread_barrier_wait(&barrera);
 
         pthread_mutex_lock(&mutex);
         //  revisar condición de victoria.
@@ -214,21 +217,26 @@ void* hiloLuchador(void *newFighter)
         pthread_barrier_wait(&barrera);
 
         pthread_mutex_lock(&mutex);
+
         checkDamage(fighter);
+        printf("fighter 1%s\n", fighter->name);
         moveFighter(fighter);
+        printf("fighter 2%s\n", fighter->name);
         attackFighter(fighter);
+
         pthread_mutex_unlock(&mutex);
 
         pthread_barrier_wait(&barrera);
 
         //sleep(1);
         pthread_mutex_lock(&mutex);
+        printf("fighter 3%s\n", fighter->name);
         printBoard();
+        printf("fighter 4%s\n", fighter->name);
         pthread_mutex_unlock(&mutex);
 
-        pthread_barrier_wait(&barrera);
     }
-
+    printf("El universo %d ha ganado\n", finish);
 
     //  Verifico si gané o no. Como? (variable compartida que cuente los luchadores muertos?)
     //  1- Mover a una posición random. (thread safe)

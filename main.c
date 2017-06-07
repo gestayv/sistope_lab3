@@ -1,13 +1,7 @@
 #include "fighters.h"
 
-
-
 //  Cabeceras de las funciones definidas luego del main.
-int parseAndCreate(char *nombre);
-void prueba();
-
-//  Estructura con los datos de cada luchador.
-
+int parseAndCreate(char *nombre, int debug);
 
 int main(int argc, char* argv[])
 {
@@ -132,15 +126,15 @@ int main(int argc, char* argv[])
         }
     }
 
-    universos = malloc(sizeof(int));
     finish = 1;
-    parseAndCreate(entries);
+
+    parseAndCreate(entries, debug);
     return 0;
 }
 
 //  Función parseAndCreate: Se encarga de leer el archivo de texto y crear
 //  los N threads correspondiente al número de peleadores.
-int parseAndCreate(char *nombre)
+int parseAndCreate(char *nombre, int debug)
 {
     //  Se abre el archivo con los datos de cada participante.
     FILE *io = fopen(nombre, "r");
@@ -173,6 +167,7 @@ int parseAndCreate(char *nombre)
     //  Se reserva memoria para los N threads y se ubica el cursor que lee el
     //  archivo con los luchadores al principio.
     fighters =  malloc(sizeof(pthread_t)*nThreads);
+    universos = malloc(sizeof(int)*nThreads);
 
     //  Se devuelve el cursor al principio del archivo.
     rewind(io);
@@ -198,19 +193,13 @@ int parseAndCreate(char *nombre)
         newFighter -> name = malloc(sizeof(char)*200);
         newFighter -> ki = 0;
         sscanf(line, "%d %d %d %s", &newFighter->hp, &newFighter->color, &newFighter->universo, newFighter->name);
+        if(debug == 1)
+        {
+            printf("Hp: %d Color: %d Universo: %d  Luchador: %s\n", newFighter->hp, newFighter->color, newFighter->universo, newFighter->name);
+        }
 
-        if(i == 0)
-        {
-            universos[i] = newFighter->universo;
-            newFighter->posArr = i;
-        }
-        else
-        {
-            int *nuevo = realloc(universos, sizeof(int)*(i+1));
-            universos = nuevo;
-            universos[i] = newFighter->universo;
-            newFighter->posArr = i;
-        }
+        universos[i] = newFighter->universo;
+        newFighter->posArr = i;
 
         pthread_create(&fighters[i], NULL, hiloLuchador, (void *)newFighter);
         i++;

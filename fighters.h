@@ -3,6 +3,7 @@
 
 #include "graphics.h"
 
+//  Estructura con los datos de cada luchador.
 typedef struct entry
 {
     int     posx;       //  Posición X en el tablero.
