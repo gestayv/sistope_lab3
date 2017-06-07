@@ -1,6 +1,6 @@
 #include "graphics.h"
 //P corresponde al peliador
-/*Funcion limpiarbloque: Limpia el bloque en la posicion (x,y) 
+/*Funcion limpiarbloque: Limpia el bloque en la posicion (x,y)
 	EJ: limpiarbloque(P->posx,P->posY,mainwin)
 */
 void limpiarbloque(int x, int y, WINDOW* ventana){
@@ -9,7 +9,7 @@ void limpiarbloque(int x, int y, WINDOW* ventana){
 	attroff(COLOR_PAIR(0));
 }
 
-/*Funcion posicionar. Escoge una nueva posicion (x2,y2) al azar desde la posicion actual (x,y) 
+/*Funcion posicionar. Escoge una nueva posicion (x2,y2) al azar desde la posicion actual (x,y)
 	EJ: posicionar(P->posx,P->posy.&P->posx,&P->posy,mainwin)
 */
 void posicionar(int x, int y, int* x2, int* y2, WINDOW* ventana){
@@ -50,7 +50,7 @@ void posicionar(int x, int y, int* x2, int* y2, WINDOW* ventana){
 	}
 }
 
-/*Funcion mover: mueve al caracter Peleador de "identificador" color a la posicion (x,y) 
+/*Funcion mover: mueve al caracter Peleador de "identificador" color a la posicion (x,y)
 	EJ: mover(P->nombre[0],P->color,P->posx,P->posy);
 */
 void mover(char nombre, int identificador, int x, int y, WINDOW* ventana){
@@ -62,7 +62,7 @@ void mover(char nombre, int identificador, int x, int y, WINDOW* ventana){
 }
 
 
-/*Escribe el dato en la pantalla de informacion 
+/*Escribe el dato en la pantalla de informacion
 	EJ: escribirStat ()
   */
 void escribirStat(int linea, int hp, int universo, int ki, int color, char* nombre, WINDOW* ventana){
@@ -119,14 +119,14 @@ int main(){
     init_pair(6, COLOR_CYAN, COLOR_BLACK);
     init_pair(7, COLOR_WHITE, COLOR_BLACK);
     init_color(8,250,128,114);
-    init_pair(8,8,COLOR_BLACK);	
+    init_pair(8,8,COLOR_BLACK);
     init_color(9,128,0,128);
     init_pair(9,9,COLOR_BLACK);
     init_color(10,0,255,255);
     init_pair(10,10,COLOR_BLACK);
 
  	int n = 100;
-         
+
     //Pone la terminal en nxn
     wresize(mainwin,n,n);
 	curs_set(0);
@@ -175,7 +175,7 @@ int main(){
 		mover('A',9,x2,y2,mainwin);
 		mover('B',8,xx2,yy2,mainwin);
 		//Se modifican los nuevos x e y
-		x = x2;	
+		x = x2;
 		y = y2;
 		xx = xx2;
 		yy = yy2;
@@ -199,4 +199,3 @@ int main(){
     return 0;
 
 }
-	

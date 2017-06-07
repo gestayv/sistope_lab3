@@ -1,5 +1,5 @@
-#ifndef GNU_H
-#define GNU_H
+#ifndef GRAPHICS_H
+#define GRAPHICS_H
 
 #include <stdio.h>
 #include <stdlib.h>

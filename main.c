@@ -1,32 +1,13 @@
-#include "graphics.h"
+#include "fighters.h"
 
-//  Variable que cuenta el número de threads.
-int numThreads, numThreadsAux;
-//  Tablero de 1 y 0 en el cual se ubican los luchadores.
-int **tablero;
-//  Variable que almacena el tamaño del tablero.
-int sizeT;
-//  Mutex a ser utilizado para proteger secciones críticas.
-pthread_mutex_t mutex;
-//  Variable condición para crear una barrera
-pthread_barrier_t barrera;
+
 
 //  Cabeceras de las funciones definidas luego del main.
 int parseAndCreate(char *nombre);
-void *hiloLuchador(void *newFighter);
 void prueba();
 
 //  Estructura con los datos de cada luchador.
-typedef struct entry
-{
-    int posx;           //  Posición X en el tablero.
-    int posy;           //  Posición Y en el tablero.
-    char    *name;      //  Nombre del luchador.
-    int     hp;         //  Vida del luchador.
-    int     ki;         //  Ki del luchador.
-    int     universo;   //  Universo del luchador.
-    int     color;      //  Color del luchador.
-} entry;
+
 
 int main(int argc, char* argv[])
 {
@@ -135,14 +116,14 @@ int main(int argc, char* argv[])
     //  Se entrega una semilla a srand para luego calcular numeros pseudo random.
     srand(time(NULL));
 
-    //  Se reserva memoria y se inicializa el tablero
+    //  Se reserva memoria para el tablero.
     int i = 0, j = 0;
     tablero = malloc(sizeT * sizeof(int*));
     for (i = 0; i < sizeT; i++)
     {
         tablero[i] = malloc(sizeT * sizeof(int));
     }
-
+    //  Se inicializa el tablero.
     for(i = 0; i < sizeT; i++)
     {
         for(j = 0; j < sizeT; j++)
@@ -151,10 +132,14 @@ int main(int argc, char* argv[])
         }
     }
 
+    universos = malloc(sizeof(int));
+    finish = 1;
     parseAndCreate(entries);
     return 0;
 }
 
+//  Función parseAndCreate: Se encarga de leer el archivo de texto y crear
+//  los N threads correspondiente al número de peleadores.
 int parseAndCreate(char *nombre)
 {
     //  Se abre el archivo con los datos de cada participante.
@@ -171,8 +156,6 @@ int parseAndCreate(char *nombre)
 
     //  Arreglo de threads, uno para cada participante.
     pthread_t *fighters;
-
-    pthread_t update;
 
     //  Se recorre el archivo caracter por caracter para saber el número de luchadores.
     char c = 0;
@@ -194,8 +177,6 @@ int parseAndCreate(char *nombre)
     //  Se devuelve el cursor al principio del archivo.
     rewind(io);
 
-    
-
     //  Se inicializa el mutex.
     if (pthread_mutex_init(&mutex, NULL) != 0)
     {
@@ -203,19 +184,34 @@ int parseAndCreate(char *nombre)
         return -1;
     }
 
+    //  Se inicializa la barrera.
     if (pthread_barrier_init(&barrera, NULL, numThreads) != 0)
     {
         printf("No se pudo inicializar la variable de condicion\n");
         return -1;
     }
 
-    int i = 0;
+    int i = 0, j = 0, nUni = 0;
     while ((bytes_leidos = getline(&line, &len, io)) != -1)
     {
         entry *newFighter = malloc(sizeof(entry));
         newFighter -> name = malloc(sizeof(char)*200);
         newFighter -> ki = 0;
-        sscanf(line, "%d %d %d %s", &newFighter->hp, &newFighter->universo, &newFighter->color, newFighter->name);
+        sscanf(line, "%d %d %d %s", &newFighter->hp, &newFighter->color, &newFighter->universo, newFighter->name);
+
+        if(i == 0)
+        {
+            universos[i] = newFighter->universo;
+            newFighter->posArr = i;
+        }
+        else
+        {
+            int *nuevo = realloc(universos, sizeof(int)*(i+1));
+            universos = nuevo;
+            universos[i] = newFighter->universo;
+            newFighter->posArr = i;
+        }
+
         pthread_create(&fighters[i], NULL, hiloLuchador, (void *)newFighter);
         i++;
     }
@@ -230,122 +226,4 @@ int parseAndCreate(char *nombre)
     pthread_mutex_destroy(&mutex);
     pthread_barrier_destroy(&barrera);
     return 1;
-}
-
-void prueba()
-{
-    //usleep(100000);
-    //sleep(1);
-    //  Meter en un thread? variables de condición...
-    for(int i = 0; i < sizeT; i++)
-    {
-        for(int j = 0; j < sizeT; j++)
-        {
-            printf("%d ", tablero[i][j]);
-        }
-        printf("\n");
-    }
-    printf("\n");
-}
-
-
-void* hiloLuchador(void *newFighter)
-{
-    int nThreads;
-    entry *fighter = (struct entry *)newFighter;
-    //  Se ubica un mutex para que entre solo una hebra a la sgte sección de código.
-    pthread_mutex_lock(&mutex);
-    //  Sección crítica: Se ubican los luchadores en el tablero antes de comenzar el encuentro.
-    //  De esta manera se evita que dos luchadores queden ocupando la misma posición.
-    do{
-        fighter -> posx = rand()%sizeT;
-        fighter -> posy = rand()%sizeT;
-    }while(tablero[fighter -> posx][fighter->posy] != 0);
-    tablero[fighter -> posx][fighter -> posy] = 1;
-    //  Se desbloquea el mutex.
-    pthread_mutex_unlock(&mutex);
-
-    //  Si HP > 0
-    int mov = 0, x_aux = 0, y_aux = 0, valido = 1;
-    while(fighter->hp > 0)
-    {
-        pthread_mutex_lock(&mutex);
-        do
-        {
-            mov = rand()%500;
-
-            if(mov >= 0 && mov < 100)
-            {
-                x_aux = fighter->posx;
-                y_aux = fighter->posy;
-            }
-            else if(mov >= 100 && mov < 200 && fighter->posx < sizeT - 1)
-            {
-                x_aux = fighter->posx+1;
-                y_aux = fighter->posy;
-            }
-            else if(mov >= 200 && mov < 300 && fighter->posx > 0)
-            {
-                x_aux = fighter->posx-1;
-                y_aux = fighter->posy;
-            }
-            else if(mov >= 300 && mov < 400 && fighter->posy < sizeT - 1)
-            {
-                x_aux = fighter->posx;
-                y_aux = fighter->posy+1;
-            }
-            else if(mov >= 400 && mov < 500 && fighter->posy > 0)
-            {
-                x_aux = fighter->posx;
-                y_aux = fighter->posy-1;
-
-            }
-        }while(tablero[x_aux][y_aux] != 0);
-
-        tablero[fighter->posx][fighter->posy] = 0;
-        tablero[x_aux][y_aux] = 1;
-        fighter->posx = x_aux;
-        fighter->posy = y_aux;
-        fighter->ki += 1;
-        pthread_mutex_unlock(&mutex);
-
-        pthread_barrier_wait(&barrera);
-
-        sleep(1);
-        pthread_mutex_lock(&mutex);
-        numThreads--;
-        if(numThreads == 0)
-        {
-            for(int i = 0; i < sizeT; i++)
-            {
-                for(int j = 0; j < sizeT; j++)
-                {
-                    printf("%d ", tablero[i][j]);
-                }
-                printf("\n");
-            }
-            printf("\n");
-            numThreads = numThreadsAux;
-        }
-        pthread_mutex_unlock(&mutex);
-
-
-
-
-        fighter->hp = fighter->hp - 100;
-    }
-
-
-    //  Verifico si gané o no. Como? (variable compartida que cuente los luchadores muertos?)
-    //  1- Mover a una posición random. (thread safe)
-    //      1.1- Aumentar ki (+1).
-    //  2- Verificar si puede atacar. (thread safe)
-    //      2.1- Si es posible:
-    //          2.1.1- Obtengo los luchadores de las posiciones contiguas.
-    //          2.1.2- Realiza el ataque (ki*5) y seteo ki en 0.
-    //  3- Verificar si ha sido atacado. (thread safe)
-    //      3.1- Restar el ataque del HP si fue atacado.
-
-    free(fighter->name);
-    free(fighter);
 }
