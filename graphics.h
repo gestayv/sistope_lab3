@@ -18,7 +18,11 @@ void mover(char nombre, int identificador, int x, int y, WINDOW* ventana);
 
 void escribirStat(int linea, int hp, int universo, int ki, int color, char* nombre, WINDOW* ventana);
 
-void mostrarDmg(char* nombre,int color,int x, int y);
+void mostrarDmg(char nombre,int color,int x, int y, WINDOW* ventana);
+
+void pantallaPunt(int n, int numero);
+
+int inicializarPantalla(int n, int numero);
 
 
 #endif
