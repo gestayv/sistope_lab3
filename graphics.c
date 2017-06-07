@@ -103,6 +103,7 @@ void mostrarDmg(char nombre,int color,int x, int y, WINDOW* ventana){
 
 WINDOW* mainwin;
 WINDOW* second;
+WINDOW* finale;
 
 void pantallaPunt(int n, int numero){
 	//Se crea la segunda pantalla
@@ -153,6 +154,21 @@ int inicializarPantalla(int n, int numero){
     attroff(COLOR_PAIR(2));
 
     pantallaPunt(n,numero);
+}
+
+
+/*finishScreen. Funcion que entrega el mensaje de victorioso
+	EJ: finishScreen(P->universo, n, finale) */
+void finishScreen(int universo, int n , WINDOW* ventana){
+
+	finale = newwin(n,n,0,0);
+	wborder(finale,'$','$','$','$','$','$','$','$');
+	int x, y;
+	getmaxyx(finale,y,x);
+	int Xmedio = x/2;
+	int Ymedio = y/2;
+	mvwprintw(finale,Ymedio-3,Xmedio,"GANADOR");
+	mvwprintw(finale,Ymedio,Xmedio,"Universo %d", universo);
 }
 
 /*Funcion para ejemplar  */
@@ -214,7 +230,7 @@ int test(){
     	//Limpia el bloque con la posicion anterior
     	limpiarbloque(x,y, mainwin);
     	limpiarbloque(xx,yy,mainwin);
-    	//Elije la nueva posicion
+    	//Elije la nueva posicion (Esto lo hace la hebra)
     	posicionar(x,y,&x2,&y2,mainwin);
     	posicionar(xx,yy,&xx2,&yy2,mainwin);
     	//Mueve hacia la posicion nueva
@@ -250,9 +266,14 @@ int test(){
 int main(int argc, char const *argv[])
 {
 	inicializarPantalla(40,7);
-	//getch();
+	getch();
+	finishScreen(1,40,finale);
+	wrefresh(finale);
+	getch();
+
 	delwin(mainwin);
 	delwin(second);
+	delwin(finale);
 	endwin();
 	refresh();
 	return 0;

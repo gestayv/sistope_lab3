@@ -24,5 +24,8 @@ void pantallaPunt(int n, int numero);
 
 int inicializarPantalla(int n, int numero);
 
+void finishScreen(int universo, int n , WINDOW* ventana);
+
+
 
 #endif

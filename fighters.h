@@ -31,8 +31,12 @@ int finish;
 pthread_mutex_t mutex;
 //  Variable condición para crear una barrera
 pthread_barrier_t barrera;
-//  COMENTALO
+//  Ventana principal del tablero, donde se ven las batallas
 WINDOW* mainwin;
+//  Ventana de informacion, donde se ven los datos
+WINDOW* second;
+//	Ventalla de finalizacion, donde se ven el universo ganador
+WINDOW* finale;
 
 void* hiloLuchador(void *newFighter);
 
