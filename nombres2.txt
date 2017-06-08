@@ -1,2 +1,2 @@
-8590 3 07 Sonic
-8590 1 02 Naruto
+1002 3 07 Sonic
+1002 1 02 Naruto

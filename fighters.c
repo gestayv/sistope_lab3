@@ -1,6 +1,8 @@
 #include "fighters.h"
 #include "graphics.h"
 
+int checkDamage(entry* fighter);
+
 //  En fighters.c se definen todas las funciones que tienen que ver con cada pelea.
 //  Esto es, ubicación de peleadores en el tablero, movimiento de peleadores en el tablero
 //  y asegurarse de que los peleadores ataquen y reciban daño.
@@ -53,6 +55,7 @@ void printBoard(entry *fighter)
 void moveFighter(entry *fighter)
 {
     int mov = 0, x_aux = 0, y_aux = 0, same = 0;
+    checkDamage(fighter);
     do
     {
         mov = rand()%500;
@@ -211,14 +214,16 @@ void attackFighter(entry *fighter)
 
 int checkDamage(entry *fighter)
 {
+    printBoard(fighter);
     if(tablero[fighter->posx][fighter->posy] > 1)
     {
+        //getchar();
         int hpaux = fighter->hp;
         fighter->hp = fighter->hp - tablero[fighter->posx][fighter->posy];
         tablero[fighter->posx][fighter->posy] = 1;
         mostrarDmg(fighter->name[0], fighter->color, fighter->posx, fighter->posy, mainwin);
-        limpiarbloque(fighter->posx,fighter->posy,mainwin);
-        getchar();
+        limpiarbloque(fighter->posx+2,fighter->posy+2,mainwin);
+        //getchar();
         if(fighter->hp <= 0)
         {
             universos[fighter->posArr] = -1;
@@ -282,7 +287,7 @@ void* hiloLuchador(void *newFighter)
     //  Si HP > 0
     while(finish == 1)
     {
-        usleep(10000);
+        usleep(80000);
 
         pthread_mutex_lock(&mutex);
         updateData(fighter);
@@ -301,7 +306,6 @@ void* hiloLuchador(void *newFighter)
         pthread_mutex_lock(&mutex);
         if(fighter->hp > 0)
         {
-            checkDamage(fighter);
             moveFighter(fighter);
             attackFighter(fighter);
         }
