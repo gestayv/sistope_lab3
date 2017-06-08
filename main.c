@@ -4,8 +4,15 @@
 //  Cabeceras de las funciones definidas luego del main.
 int parseAndCreate(char *nombre, int debug);
 
+void signalOverride(int value)
+{
+    return;
+}
+
 int main(int argc, char* argv[])
 {
+    signal(SIGINT, signalOverride);
+
     char    *entries = malloc(200);
     int     iflag = 0;
     int     nflag = 0;
@@ -127,7 +134,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    finish = 1;
+    finish = -2;
 
     parseAndCreate(entries, debug);
     return 0;
@@ -153,13 +160,34 @@ int parseAndCreate(char *nombre, int debug)
     pthread_t *fighters;
 
     //  Se recorre el archivo caracter por caracter para saber el número de luchadores.
-    char c = 0;
+    /*char c = 0;
     while((c = fgetc(io)) != EOF)
     {
         if (c == '\n')
         {
             nThreads++;
         }
+    }*/
+
+
+
+
+    //  Se devuelve el cursor al principio del archivo.
+    rewind(io);
+
+    //  Se lee el archivo linea por linea para mostrar los datos en caso de que la
+    //  opción de debug sea igual a 1, además se va contando cuantos luchadores van a
+    //  haber para obtener el número de threads a utilizar.
+    int hp, color, universo;
+    char *name = malloc(200);
+    while ((bytes_leidos = getline(&line, &len, io)) != -1)
+    {
+        sscanf(line, "%d %d %d %[^\t\n]", &hp, &color, &universo, name);
+        if(debug == 1)
+        {
+            printf("Hp: %d Color: %d Universo: %d  Luchador: %s\n", hp, color, universo, name);
+        }
+        nThreads++;
     }
 
     numThreads = nThreads;
@@ -169,11 +197,13 @@ int parseAndCreate(char *nombre, int debug)
     //  archivo con los luchadores al principio.
     fighters =  malloc(sizeof(pthread_t)*nThreads);
     universos = malloc(sizeof(int)*nThreads);
-    inicializarPantalla(sizeT, nThreads);
 
+    printf("Presione enter para continuar...");
+    getchar();
 
-    //  Se devuelve el cursor al principio del archivo.
     rewind(io);
+
+    inicializarPantalla(sizeT, nThreads);
 
     //  Se inicializa el mutex.
     if (pthread_mutex_init(&mutex, NULL) != 0)
@@ -189,18 +219,13 @@ int parseAndCreate(char *nombre, int debug)
         return -1;
     }
 
-    int i = 0, j = 0, nUni = 0;
+    int i = 0, j = 0;
     while ((bytes_leidos = getline(&line, &len, io)) != -1)
     {
         entry *newFighter = malloc(sizeof(entry));
         newFighter -> name = malloc(sizeof(char)*200);
         newFighter -> ki = 0;
-        sscanf(line, "%d %d %d %s", &newFighter->hp, &newFighter->color, &newFighter->universo, newFighter->name);
-        if(debug == 1)
-        {
-            //printf("Hp: %d Color: %d Universo: %d  Luchador: %s\n", newFighter->hp, newFighter->color, newFighter->universo, newFighter->name);
-        }
-
+        sscanf(line, "%d %d %d %[^\t\n]", &newFighter->hp, &newFighter->color, &newFighter->universo, newFighter->name);
         universos[i] = newFighter->universo;
         newFighter->posArr = i;
 

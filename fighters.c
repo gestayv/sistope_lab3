@@ -2,6 +2,7 @@
 #include "graphics.h"
 
 int checkDamage(entry* fighter);
+void attackFighter(entry *fighter);
 
 //  En fighters.c se definen todas las funciones que tienen que ver con cada pelea.
 //  Esto es, ubicación de peleadores en el tablero, movimiento de peleadores en el tablero
@@ -24,23 +25,11 @@ void placeFighter(entry *fighter)
 //  barrera, de manera que se espera a que pasen N-1 threads y se imprime sólo cuando
 //  pasa el último. Esta función se creó para debuggear el programa y saber
 //  si el comportamiento otorgado a cada peleador funciona de manera correcta.
-void printBoard(entry *fighter)
+void printBoard()
 {
     numThreads--;
-    //mover(fighter->name[0], fighter->color, fighter->posx, fighter->posy, mainwin);
     if(numThreads == 0)
     {
-        /*
-        for(int i = 0; i < sizeT; i++)
-        {
-            for(int j = 0; j < sizeT; j++)
-            {
-                printf("%d ", tablero[i][j]);
-            }
-            printf("\n");
-        }
-        printf("\n");
-        */
         numThreads = numThreadsAux;
         wrefresh(mainwin);
     }
@@ -63,7 +52,6 @@ void moveFighter(entry *fighter)
         {
             x_aux = fighter->posx;
             y_aux = fighter->posy;
-            //printf("%d %d fighter: %s\n", x_aux, y_aux, fighter->name);
         }
         else if(mov >= 100 && mov < 200)
         {
@@ -135,6 +123,7 @@ void moveFighter(entry *fighter)
     fighter->posx = x_aux;
     fighter->posy = y_aux;
     fighter->ki++;
+    attackFighter(fighter);
 }
 
 //  Función attackFighter: Se encarga de verificar si el peleador puede realizar
@@ -148,60 +137,65 @@ void attackFighter(entry *fighter)
     int ypos = fighter->posy;
     if(xpos > 0)
     {
-        if(tablero[xpos-1][ypos] > 0 && fighter->ki > 0)
+        if(tablero[xpos-1][ypos] > 0)
         {
-            ataque = 1;
             if(tablero[xpos-1][ypos] == 1)
             {
                 tablero[xpos-1][ypos] = fighter->ki*5;
+                ataque = 1;
             }
             else if(tablero[xpos-1][ypos] > 1)
             {
                 tablero[xpos-1][ypos] += fighter->ki*5;
+                ataque = 1;
             }
         }
     }
     if(xpos < sizeT-1)
     {
-        if(tablero[xpos+1][ypos] > 0 && fighter->ki > 0)
+        if(tablero[xpos+1][ypos] > 0)
         {
-            ataque = 1;
             if(tablero[xpos+1][ypos] == 1)
             {
+                ataque = 1;
                 tablero[xpos+1][ypos] = fighter->ki*5;
             }
             else if(tablero[xpos+1][ypos] > 1)
             {
+                ataque = 1;
                 tablero[xpos+1][ypos] += fighter->ki*5;
             }
         }
     }
     if(ypos > 0)
     {
-        if(tablero[xpos][ypos-1] > 0 && fighter->ki > 0)
+        if(tablero[xpos][ypos-1] > 0)
         {
             ataque = 1;
             if(tablero[xpos][ypos-1] == 1)
             {
+                ataque = 1;
                 tablero[xpos][ypos-1] = fighter->ki*5;
             }
             else if(tablero[xpos][ypos-1] > 1)
             {
+                ataque = 1;
                 tablero[xpos][ypos-1] += fighter->ki*5;
             }
         }
     }
     if(ypos < sizeT-1)
     {
-        if(tablero[xpos][ypos+1] > 0 && fighter->ki > 0)
+        if(tablero[xpos][ypos+1] > 0)
         {
-            ataque = 1;
             if(tablero[xpos][ypos+1] == 1)
             {
+                ataque = 1;
                 tablero[xpos][ypos+1] = fighter->ki*5;
             }
             else if(tablero[xpos][ypos+1] > 1)
             {
+                ataque = 1;
                 tablero[xpos][ypos+1] += fighter->ki*5;
             }
         }
@@ -212,18 +206,18 @@ void attackFighter(entry *fighter)
     }
 }
 
+//  Función checkDamage: se encarga de verificar si un peleador ha recibido daño.
+//  Entrada:
+//          - fighter: Estructura que posee todos los datos importantes de cada peleador.
 int checkDamage(entry *fighter)
 {
     printBoard(fighter);
     if(tablero[fighter->posx][fighter->posy] > 1)
     {
-        //getchar();
         int hpaux = fighter->hp;
         fighter->hp = fighter->hp - tablero[fighter->posx][fighter->posy];
         tablero[fighter->posx][fighter->posy] = 1;
-        mostrarDmg(fighter->name[0], fighter->color, fighter->posx, fighter->posy, mainwin);
-        limpiarbloque(fighter->posx+2,fighter->posy+2,mainwin);
-        //getchar();
+
         if(fighter->hp <= 0)
         {
             universos[fighter->posArr] = -1;
@@ -234,30 +228,35 @@ int checkDamage(entry *fighter)
     return 0;
 }
 
+//  Función victoryCondition: Se encarga de verificar si un universo es ganador o no.
 int victoryCondition()
 {
     int i = 0;
-    int aux = -1;
-    for(i = 0; i < numThreads; i++)
+    int aux = 0;
+    for(i = 0; i < numThreadsAux; i++)
     {
-        if(aux == -1)
+        if(universos[i] != -1)
         {
-            if(universos[i] != -1)
-            {
-                aux = universos[i];
-            }
+            aux = universos[i];
+            break;
         }
-        else
+    }
+
+    for(i = 0; i < numThreadsAux; i++)
+    {
+        if(universos[i] != -1)
         {
-            if(universos[i] != aux && universos[i] != -1)
+            if(universos[i] != aux)
             {
-                return 1;
+                return -2;
             }
         }
     }
+
     return aux;
 }
 
+//  updateData: Función que actualiza los datos de cada luchador al comienzo de cada turno.
 void updateData(entry* fighter)
 {
     escribirStat(fighter->posArr, fighter->hp, fighter->universo, fighter->ki, fighter->color, fighter->name, second);
@@ -282,12 +281,13 @@ void* hiloLuchador(void *newFighter)
     pthread_barrier_wait(&barrera);
 
     pthread_mutex_lock(&mutex);
-    printBoard(fighter);
+    printBoard();
     pthread_mutex_unlock(&mutex);
     //  Si HP > 0
-    while(finish == 1)
+    while(1)
     {
-        usleep(80000);
+        sleep(1);
+        pthread_barrier_wait(&barrera);
 
         pthread_mutex_lock(&mutex);
         updateData(fighter);
@@ -299,35 +299,19 @@ void* hiloLuchador(void *newFighter)
         finish = victoryCondition();
         pthread_mutex_unlock(&mutex);
 
-        if(finish == 1)
+        if(finish != -2)
         {
-        pthread_barrier_wait(&barrera);
+            break;
+        }
+            pthread_barrier_wait(&barrera);
 
-        pthread_mutex_lock(&mutex);
-        if(fighter->hp > 0)
-        {
+            pthread_mutex_lock(&mutex);
             moveFighter(fighter);
-            attackFighter(fighter);
-        }
-        pthread_mutex_unlock(&mutex);
+            pthread_mutex_unlock(&mutex);
 
-        pthread_mutex_lock(&mutex);
-        printBoard(fighter);
-        pthread_mutex_unlock(&mutex);
-        }
+            pthread_mutex_lock(&mutex);
+            printBoard();
+            pthread_mutex_unlock(&mutex);
 
     }
-
-    //  Verifico si gané o no. Como? (variable compartida que cuente los luchadores muertos?)
-    //  1- Mover a una  posición random. (thread safe)
-    //      1.1- Aumentar ki (+1).
-    //  2- Verificar si puede atacar. (thread safe)
-    //      2.1- Si es posible:
-    //          2.1.1- Obtengo los luchadores de las posiciones contiguas.
-    //          2.1.2- Realiza el ataque (ki*5) y seteo ki en 0.
-    //  3- Verificar si ha sido atacado. (thread safe)
-    //      3.1- Restar el ataque del HP si fue atacado.
-
-    free(fighter->name);
-    free(fighter);
 }

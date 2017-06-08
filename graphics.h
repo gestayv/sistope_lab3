@@ -9,6 +9,8 @@
 #include <time.h>
 #include <pthread.h>
 #include <ctype.h>
+#include <signal.h>
+
 
 void limpiarbloque(int x, int y, WINDOW* ventana);
 
